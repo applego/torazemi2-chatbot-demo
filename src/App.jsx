@@ -18,7 +18,9 @@ class App extends React.Component {
   render() {
     return(
       <section className="c-section">
-        <div className="c-box"></div>
+        <div className="c-box">
+          {this.state.currentId}
+        </div>
       </section>
     );
   }
