@@ -1,3 +1,4 @@
+import React from 'react';
 import logo from './logo.svg';
 import defaultDataset from './dataset';
 import './assets/styles/style.css';
@@ -15,10 +16,10 @@ class App extends React.Component {
   }
 
   render() {
-    this.return(
-      <div>
-
-      </div>
+    return(
+      <section className="c-section">
+        <div className="c-box"></div>
+      </section>
     );
   }
 }

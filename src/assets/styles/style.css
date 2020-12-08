@@ -1,4 +1,5 @@
 .c-section {
+  /* 画面一杯のサイズにする */
   position: relative;
   height: 100vh;
   width: 100%;
