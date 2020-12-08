@@ -1,6 +1,6 @@
 import logo from './logo.svg';
-import './App.css';
 import defaultDataset from './dataset';
+import './assets/styles/style.css';
 
 class App extends React.Component {
   constructor(props) {
