@@ -16,11 +16,25 @@ class App extends React.Component {
     }
   }
 
+  initAnswer = () => {
+    const initDataset = this.state.dataset[this.state.currentId]
+    const initAnswers = initDataset.answers
+
+    this.setState({
+      answers:initAnswers
+    })
+  }
+
+  // コンポーネントが初期化して最初のrender後に何かしら副作用のある処理をしたい時
+  componentDidMount() {
+    this.initAnswer()
+  }
+
   render() {
     return(
       <section className="c-section">
         <div className="c-box">
-          <AnswersList />
+          <AnswersList answers={this.state.answers} />
         </div>
       </section>
     );
