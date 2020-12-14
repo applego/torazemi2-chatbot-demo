@@ -14,6 +14,7 @@ class App extends React.Component {
       dataset: defaultDataset,
       open: false
     }
+    this.selectAnswer = this.selectAnswer.bind(this);
   }
 
   displayNextQuestion = (nextQuestionId) => {
@@ -63,7 +64,7 @@ class App extends React.Component {
       <section className="c-section">
         <div className="c-box">
           <Chats chats={this.state.chats} />
-          <AnswersList answers={this.state.answers} />
+          <AnswersList answers={this.state.answers} select={this.selectAnswer} />
         </div>
       </section>
     );
