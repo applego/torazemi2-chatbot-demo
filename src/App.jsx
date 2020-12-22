@@ -34,7 +34,7 @@ class App extends React.Component {
   selectAnswer = (selectedAnswer, nextQuestionId) => {
     switch (true) {
       case (nextQuestionId === 'init'):
-        this.displayNextQuestion(nextQuestionId);
+        setTimeout(() => this.displayNextQuestion(nextQuestionId), 500);
         break;
       default:
         const chats = this.state.chats;
@@ -48,7 +48,7 @@ class App extends React.Component {
           // NG 直接買い替えてしまっているから chats: this.state.chats.push(chat)
         });
 
-        this.displayNextQuestion(nextQuestionId);
+        setTimeout(() => this.displayNextQuestion(nextQuestionId), 1000);
         break;
     }
   }
