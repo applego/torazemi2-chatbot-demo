@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import defaultDataset from './dataset';
 import './assets/styles/style.css';
 import { AnswersList, Chats } from './components/index';
+import FormDialog from './components/Forms/FormDialog';
 
 class App extends React.Component {
   constructor(props) {
@@ -12,9 +13,11 @@ class App extends React.Component {
       chats: [],
       currentId: "init",
       dataset: defaultDataset,
-      open: false
+      open: open
     }
     this.selectAnswer = this.selectAnswer.bind(this);
+    this.handleClickOpen = this.handleClickOpen.bind(this);
+    this.handleClose = this.handleClose.bind(this);
   }
 
   displayNextQuestion = (nextQuestionId) => {
@@ -59,6 +62,14 @@ class App extends React.Component {
     }
   }
 
+  handleClickOpen = () => {
+    this.setState({ open: true });
+  }
+
+  handleClose = () => {
+    this.setState({ open: false });
+  }
+
   // コンポーネントが初期化して最初のrender後に何かしら副作用のある処理をしたい時
   componentDidMount() {
     const initAnswer = "";
@@ -79,6 +90,7 @@ class App extends React.Component {
         <div className="c-box">
           <Chats chats={this.state.chats} />
           <AnswersList answers={this.state.answers} select={this.selectAnswer} />
+          <FormDialog open={this.state.open} handleClose={this.handleClose} />
         </div>
       </section>
     );
