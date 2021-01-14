@@ -1,9 +1,8 @@
 import React from 'react';
-import logo from './logo.svg';
-import defaultDataset from './dataset';
 import './assets/styles/style.css';
 import { AnswersList, Chats } from './components/index';
 import FormDialog from './components/Forms/FormDialog';
+import { db } from './firebase/index';
 
 class App extends React.Component {
   constructor(props) {
@@ -12,7 +11,7 @@ class App extends React.Component {
       answers: [],
       chats: [],
       currentId: "init",
-      dataset: defaultDataset,
+      dataset: {},//defaultDataset,// firestoreにつなぐ前は./dataset.jsから → 実施
       open: false
     }
     this.selectAnswer = this.selectAnswer.bind(this);
@@ -73,10 +72,27 @@ class App extends React.Component {
     this.setState({ open: false });
   }
 
+  initDataset = (dataset) => {
+    this.setState({ dataset: dataset });
+  }
+
   // コンポーネントが初期化して最初のrender後に何かしら副作用のある処理をしたい時
+  // Firebaseのdb(firestore)のデータを取得する(componentDidMountですることが多い）
   componentDidMount() {
-    const initAnswer = "";
-    this.selectAnswer(initAnswer, 'init');
+    //aync付きの即時関数
+    (async () => {
+      const dataset = this.state.dataset;
+
+      // Fetch questions dataset from Firestore
+      await db.collection('questions').get().then(snapshots => {
+        snapshots.forEach(doc => {
+          dataset[doc.id] = doc.data();
+        });
+      });
+      this.initDataset(dataset);
+      const initAnswer = "";
+      this.selectAnswer(initAnswer, this.state.currentId);
+    })();
   }
 
   // 最新のチャットが見えるように、スクロール位置の頂点をスクロール領域の最下部に設定する
