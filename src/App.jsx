@@ -1,119 +1,116 @@
-import React from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 import './assets/styles/style.css';
 import { AnswersList, Chats } from './components/index';
 import FormDialog from './components/Forms/FormDialog';
 import { db } from './firebase/index';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      answers: [],
-      chats: [],
-      currentId: "init",
-      dataset: {},//defaultDataset,// firestoreにつなぐ前は./dataset.jsから → 実施
-      open: false
-    }
-    this.selectAnswer = this.selectAnswer.bind(this);
-    this.handleClickOpen = this.handleClickOpen.bind(this);
-    this.handleClose = this.handleClose.bind(this);
-  }
+const App = () => {
+  const [answers, setAnswers] = useState([]);
+  const [chats, setChats] = useState([]);
+  const [currentId, setCurrentId] = useState("init");
+  const [dataset, setDataset] = useState({});
+  const [open, setOpen] = useState(false);
 
-  displayNextQuestion = (nextQuestionId) => {
-    const chats = this.state.chats;
-    chats.push({
-      text: this.state.dataset[nextQuestionId].question,
-      type:'question'
-    })
+  // 問い合わせフォーム用モーダルを開くCallback関数
+  const handleOpen = useCallback(() => {
+    setOpen(true);
+  },[setOpen]);
 
-    this.setState({
-      answers: this.state.dataset[nextQuestionId].answers,
-      chats: chats,
-      currentId: nextQuestionId
-    })
-  }
+  // 問い合わせフォーム用モーダルを閉じるCallback関数
+  // * 子コンポーネントにpropsとして渡しているためuseCallbackで書き換えてパフォーマンス向上
+  const handleClose = useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
 
-  selectAnswer = (selectedAnswer, nextQuestionId) => {
+  // 新しいチャットを追加するCallback関数
+  const addChats = useCallback((chat) => {
+    setChats(prevChats => {
+      return [...prevChats, chat];
+    });
+  }, [setChats]);
+
+  // 次の質問をチャットエリアに表示する関数
+  const displayNextQuestion = (nextQuestionId, nextDataset) => {
+    // 選択された回答と次の質問をチャットに追加
+    addChats({
+      text: nextDataset.question,
+      type: 'question'
+    });
+
+    // 次の回答一覧をセット
+    setAnswers(nextDataset.answers);
+
+    // 現在の質問IDをセット
+    setCurrentId(nextQuestionId);
+  };
+
+  // 回答が選択された時に呼ばれる関数
+  const selectAnswer = useCallback((selectedAnswer, nextQuestionId) => {
     switch (true) {
-      case (nextQuestionId === 'init'):
-        setTimeout(() => this.displayNextQuestion(nextQuestionId), 500);
-        break;
+      // お問い合わせが選択された場合
       case (nextQuestionId === 'contact'):
-        this.handleClickOpen();
+        handleOpen();
         break;
+      // リンクが選択された時
       case (/^https:*/.test(nextQuestionId)):
         const a = document.createElement('a');
         a.href = nextQuestionId;
         a.target = '_blank';
         a.click();
         break;
+      // 選択された回答をchatsに追加
       default:
-        const chats = this.state.chats;
-        chats.push({
+        addChats({
           text: selectedAnswer,
           type: 'answer'
         });
 
-        this.setState({
-          chats: chats
-          // NG 直接買い替えてしまっているから chats: this.state.chats.push(chat)
-        });
-
-        setTimeout(() => this.displayNextQuestion(nextQuestionId), 1000);
+        setTimeout(() => displayNextQuestion(nextQuestionId, dataset[nextQuestionId]), 750);
         break;
     }
-  }
+  }, [answers]);
 
-  handleClickOpen = () => {
-    this.setState({ open: true });
-  }
-
-  handleClose = () => {
-    this.setState({ open: false });
-  }
-
-  initDataset = (dataset) => {
-    this.setState({ dataset: dataset });
-  }
-
-  // コンポーネントが初期化して最初のrender後に何かしら副作用のある処理をしたい時
-  // Firebaseのdb(firestore)のデータを取得する(componentDidMountですることが多い）
-  componentDidMount() {
+  // 最初の質問をチャットエリアに表示する
+    // コンポーネントが初期化して最初のrender後に何かしら副作用のある処理をしたい時
+    // Firebaseのdb(firestore)のデータを取得する(componentDidMountですることが多い）
+  useEffect(() => {
     //aync付きの即時関数
     (async () => {
-      const dataset = this.state.dataset;
+      const initDataset = {};
 
       // Fetch questions dataset from Firestore
       await db.collection('questions').get().then(snapshots => {
         snapshots.forEach(doc => {
-          dataset[doc.id] = doc.data();
+          initDataset[doc.id] = doc.data();
         });
       });
-      this.initDataset(dataset);
-      const initAnswer = "";
-      this.selectAnswer(initAnswer, this.state.currentId);
+
+      // Firestoreから取得したデータセットを反映
+      setDataset(initDataset);
+
+      // 最初の質問を表示
+      displayNextQuestion(currentId, initDataset[currentId]);
     })();
-  }
+  }, []); //* componentDidMountをuseEffectで書き換えるときは第二引数を空の配列で
 
   // 最新のチャットが見えるように、スクロール位置の頂点をスクロール領域の最下部に設定する
-  componentDidUpdate(prevProps, prevState, snapshot) {
+  //* ComponentDidUpdateをuseEffectで書き換え
+  useEffect(() => {
     const scrollArea = document.getElementById('scroll-area');
     if (scrollArea) {
       scrollArea.scrollTop = scrollArea.scrollHeight;
     }
-  }
+  });
 
-  render() {
-    return(
-      <section className="c-section">
-        <div className="c-box">
-          <Chats chats={this.state.chats} />
-          <AnswersList answers={this.state.answers} select={this.selectAnswer} />
-          <FormDialog open={this.state.open} handleClose={this.handleClose} />
-        </div>
-      </section>
-    );
-  }
+  return (
+    <section className="c-section">
+      <div className="c-box">
+        <Chats chats={chats} />
+        <AnswersList answers={answers} select={selectAnswer} />
+        <FormDialog open={open} handleClose={handleClose} />
+      </div>
+    </section>
+  );
 }
 
 export default App;
