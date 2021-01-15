@@ -1,8 +1,8 @@
 import React, { useState, useEffect,useCallback } from 'react';
+import defaultDataset from './dataset';
 import './assets/styles/style.css';
 import { AnswersList, Chats, Loading } from './components/index';
 import { FormDialog } from './components/Forms/index';
-import { db } from './firebase/index';
 
 const App = () => {
   const [answers, setAnswers] = useState([]);
@@ -76,20 +76,20 @@ const App = () => {
   useEffect(() => {
     //aync付きの即時関数
     (async () => {
-      const initDataset = {};
+      // const initDataset = {};
 
       // Fetch questions dataset from Firestore
-      await db.collection('questions').get().then(snapshots => {
-        snapshots.forEach(doc => {
-          initDataset[doc.id] = doc.data();
-        });
-      });
+      // await db.collection('questions').get().then(snapshots => {
+      //   snapshots.forEach(doc => {
+      //     initDataset[doc.id] = doc.data();
+      //   });
+      // });
 
       // Firestoreから取得したデータセットを反映
-      setDataset(initDataset);
+      setDataset(defaultDataset);
 
       // 最初の質問を表示
-      displayNextQuestion(currentId, initDataset[currentId]);
+      displayNextQuestion(currentId, defaultDataset[currentId]);
     })();
   }, []); //* componentDidMountをuseEffectで書き換えるときは第二引数を空の配列で
 
